@@ -1,0 +1,129 @@
+<!-- start of Login form -->
+<form [formGroup]="form" (ngSubmit)="submit()" accept-charset="UTF-8">
+
+  <!-- start of disease name -->
+  <div class="form-group">
+
+    <input
+      formControlName="name"
+      id="name"
+      placeholder="Disease name..."
+      type="text"
+      class="form-control">
+
+  </div>
+  <!-- end of disease name -->
+
+
+  <!-- start of disease group -->
+  <div class="form-group">
+
+    <select class="form-control" formControlName="group">
+      <option value="" selected disabled>Disease group...</option>
+      <option *ngFor="let t of types" [ngValue]="t">{{t}}</option>
+    </select>
+
+  </div>
+  <!-- end of disease group -->
+
+  <br/>
+  <div class="container">
+
+    <div class="row">
+
+      <div class="col-md-6">
+        <p>Generic symptoms:</p>
+        <!-- start of selected generic symptoms table -->
+        <table class="table table-hover table-sm table-striped">
+
+          <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Actions</th>
+          </tr>
+          </thead>
+
+          <tbody>
+          <tr *ngFor="let d of selectedGenericSymptoms">
+            <td>{{d.id}}</td>
+            <td>{{d.name}}</td>
+            <td>
+              <button type="button" class="btn btn-danger btn-sm" (click)="removeItem(d.id, 'GENERIC')">Remove</button>
+            </td>
+          </tr>
+          </tbody>
+
+        </table>
+        <!-- end of selected generic symptoms table -->
+      </div>
+
+      <div class="col-md-6">
+        <p>Specific symptoms:</p>
+        <!-- start of selected specific symptoms table -->
+        <table class="table table-hover table-sm table-striped">
+
+          <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Actions</th>
+          </tr>
+          </thead>
+
+          <tbody>
+          <tr *ngFor="let d of selectedSpecificSymptoms">
+            <td>{{d.id}}</td>
+            <td>{{d.name}}</td>
+            <td>
+              <button type="button" class="btn btn-danger btn-sm" (click)="removeItem(d.id, 'SPECIFIC')">Remove</button>
+            </td>
+          </tr>
+          </tbody>
+
+        </table>
+        <!-- end of selected specific symptoms table -->
+      </div>
+
+    </div>
+
+    <br/>
+
+    <div class="row">
+      <!-- start of symptoms table -->
+      <table *ngIf="symptoms" class="table table-hover table-sm table-striped">
+
+        <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Name</th>
+          <th scope="col">Actions</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr *ngFor="let d of symptoms">
+          <td>{{d.id}}</td>
+          <td>{{d.name}}</td>
+          <td>
+            <div class="btn-group btn-group-sm">
+              <button type="button" class="btn btn-success" (click)="addItem(d.id, 'GENERIC')">Add as generic</button>
+              <button type="button" class="btn btn-success" (click)="addItem(d.id, 'SPECIFIC')">Add as specific</button>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+
+      </table>
+      <!-- end of symptoms table -->
+    </div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="btn-group btn-group-sm pull-right">
+    <button class="btn btn-success" type="submit" [disabled]="!form.valid">Submit</button>
+    <button class="btn btn-warning" type="button" (click)="clearClicked()">Clear</button>
+  </div>
+
+</form>
+<!-- end of Login form -->

@@ -1,0 +1,171 @@
+package rules
+
+import rs.ac.uns.ftn.sbz.backend.model.Diagnosis;
+import rs.ac.uns.ftn.sbz.backend.model.Disease;
+import rs.ac.uns.ftn.sbz.backend.model.enumeration.MedicationType;
+import rs.ac.uns.ftn.sbz.backend.model.Patient;
+import rs.ac.uns.ftn.sbz.backend.model.codebook.Diseases;
+import rs.ac.uns.ftn.sbz.backend.model.util.PatientList;
+import rs.ac.uns.ftn.sbz.backend.model.util.DiagnosisList;
+import rs.ac.uns.ftn.sbz.backend.model.util.StringIntegerMap;
+import rs.ac.uns.ftn.sbz.backend.service.DiseaseService;
+import rs.ac.uns.ftn.sbz.backend.service.MedicationService;
+import org.apache.commons.lang3.time.DateUtils;
+import java.util.Date;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
+
+dialect "mvel"
+
+
+rule "Chronic disease patients"
+    agenda-group "CHRONIC"
+    no-loop
+    when
+        $patient: Patient()
+        $diagnosisList: DiagnosisList()
+        $chronical: PatientList()
+
+        $map : StringIntegerMap(size > 0) from accumulate
+        (
+            Diagnosis($patient.id == patient.id, $diseases: diseases, new Date() < DateUtils.addYears(new Date(date.getTime()), 2))
+            from $diagnosisList.getDiagnosisList(),
+            init(StringIntegerMap sim = new StringIntegerMap()),
+            action
+            (
+                for (Disease d : $diseases)
+                {
+                    if (!d.getName().equalsIgnoreCase(Diseases.FLU) &&
+                        !d.getName().equalsIgnoreCase(Diseases.FEVER))
+                    {
+                        sim.incCount(d.getName());
+                    }
+                };
+            ),
+            result(sim)
+        )
+
+        Number(intValue > 0) from accumulate
+        (
+            $sim: StringIntegerMap()
+            from $map,
+            init(int count = 0;),
+            action
+            (
+                for (String diseaseName : $sim.keySet())
+                {
+                    if ($sim.contains(diseaseName) && $sim.get(diseaseName) > 5)
+                        count = 1;
+                };
+            ),
+            reverse(count = 0),
+            result(count;)
+        )
+    then
+        modify($chronical){add($patient)}
+    end
+
+
+rule "Possible medication addicts"
+    agenda-group "ADDICTS"
+    no-loop
+    when
+        $patient: Patient()
+        $diagnosisList: DiagnosisList()
+        $addicts: PatientList()
+
+        $diagnosesInLastSixMonths: List() from accumulate
+        (
+            $d: Diagnosis($patient.id == patient.id, new Date() < DateUtils.addMonths(new Date(date.getTime()), 6))
+            from $diagnosisList.getDiagnosisList(),
+            init(List<Diagnosis> l = new ArrayList();),
+            action(l.add($d);),
+            result(l)
+        )
+
+        $analgesics : Number(intValue >= 6) from accumulate
+        (
+            Diagnosis(hasPrescribedMedicationType(MedicationType.ANALGESIC))
+            from $diagnosesInLastSixMonths,
+            init(int count = 1;),
+            action(count += 1;),
+            reverse(count -= 1;),
+            result(count)
+        )
+
+        $physicians: Set(size >= 3) from accumulate
+        (
+            Diagnosis($physician: physician)
+            from $diagnosesInLastSixMonths,
+            init(Set<String> s = new HashSet();),
+            action(s.add($physician.getPersonalId());),
+            result(s)
+        )
+    then
+        modify($addicts){add($patient)}
+    end
+
+
+//rule "Weak immune system patients"
+//    agenda-group "WEAK IMMUNE SYSTEM"
+//    no-loop
+//    when
+//        $patient: Patient()
+//        $diagnosisList: DiagnosisList()
+//        $weak: PatientList()
+//
+//        $relevantDiagnoses: List() from accumulate
+//        (
+//            $d: Diagnosis
+//            (
+//                hasPrescribedMedicationType(MedicationType.ANTIBIOTIC) &&
+//                !hasPrescribedMedicationType(MedicationType.ANALGESIC) &&
+//                !hasPrescribedMedicationType(MedicationType.OTHER),
+//                new Date() < DateUtils.addMonths(new Date(date.getTime()), 12)
+//            )
+//            from $diagnosisList.getDiagnosisList(),
+//            init(List<Diagnosis> l = new ArrayList();),
+//            action(l.add($d);),
+//            reverse(l.remove($d);),
+//            result(l)
+//        )
+//
+//        $relevantDiseases: List() from accumulate
+//        (
+//            $d: Diagnosis()
+//            from $relevantDiagnoses,
+//            init(List<Disease> l = new ArrayList();),
+//            action(l.addAll($d.getDiseases());),
+//            result(l)
+//        )
+//
+//        $map : StringIntegerMap(size > 1) from accumulate
+//        (
+//            $d: Disease()
+//            from $relevantDiseases,
+//            init(StringIntegerMap sim = new StringIntegerMap()),
+//            action(sim.incCount($d.getName());),
+//            result(sim)
+//        )
+//
+//        $n: Number(intValue > 0) from accumulate
+//        (
+//            $sim: StringIntegerMap()
+//            from $map,
+//            init(int count = 0;),
+//            action
+//            (
+//                if ($sim.keySet().size() >= 2 && $sim.valueSetSum() >= 10)
+//                    count = 1;
+//            ),
+//            reverse(count = 0),
+//            result(count;)
+//        )
+//    then
+//        System.out.println("D");
+//        modify($weak){add($patient)}
+//    end

@@ -1,0 +1,244 @@
+package rules
+
+dialect "mvel"
+
+
+import rs.ac.uns.ftn.sbz.backend.model.Diagnosis;
+import rs.ac.uns.ftn.sbz.backend.model.Disease;
+import rs.ac.uns.ftn.sbz.backend.model.enumeration.DiseaseGroup;
+import rs.ac.uns.ftn.sbz.backend.model.enumeration.MedicationType;
+import rs.ac.uns.ftn.sbz.backend.model.Symptom;
+import rs.ac.uns.ftn.sbz.backend.model.Patient;
+import rs.ac.uns.ftn.sbz.backend.model.codebook.Symptoms;
+import rs.ac.uns.ftn.sbz.backend.model.codebook.Diseases;
+import rs.ac.uns.ftn.sbz.backend.model.util.SymptomCounter;
+import rs.ac.uns.ftn.sbz.backend.model.util.DiseaseMap;
+import org.apache.commons.lang3.time.DateUtils;
+import java.util.Date;
+
+
+rule "Flu count"
+   salience $count
+   agenda-group "DISEASE-MATCHED-SYMPTOMS-COUNT"
+   lock-on-active
+   when
+       $diagnosis: Diagnosis($symptoms: symptoms)
+       $disease: Disease(name == Diseases.FLU)
+       $diseases: DiseaseMap()
+       $count: Number(intValue > 0) from accumulate
+       (
+           Symptom(name == Symptoms.RUNNY_NOSE ||
+                   name == Symptoms.SORE_THROAT ||
+                   name == Symptoms.HEADACHE ||
+                   name == Symptoms.SNEEZING ||
+                   name == Symptoms.COUGHING)
+           from $symptoms,
+           init(int count = 0;),
+           action(count += 1;),
+           reverse(count -= 1;),
+           result(count)
+       )
+   then
+       System.out.println("Flu: " + $count);
+       modify($diseases) { put($disease, $count) }
+   end
+
+
+rule "Fever count"
+   salience $count
+   agenda-group "DISEASE-MATCHED-SYMPTOMS-COUNT"
+   lock-on-active
+   when
+       $diagnosis: Diagnosis($symptoms: symptoms, $bodyTemperature: bodyTemperature)
+       $disease: Disease(name == Diseases.FEVER)
+       $diseases: DiseaseMap()
+       $count: Number(intValue > 0) from accumulate
+       (
+           Symptom(name == Symptoms.RUNNY_NOSE ||
+                  name == Symptoms.SORE_THROAT ||
+                  name == Symptoms.HEADACHE ||
+                  name == Symptoms.SNEEZING ||
+                  name == Symptoms.COUGHING ||
+                  (name == Symptoms.BODY_TEMPERATURE && $bodyTemperature >= 38.0) ||
+                  name == Symptoms.TREMBLING)
+           from $symptoms,
+           init(int count = 0;),
+           action(count += 1;),
+           reverse(count -= 1;),
+           result(count)
+       )
+   then
+       System.out.println("Fever: " + $count);
+       modify($diseases) { put($disease, $count) }
+   end
+
+
+rule "Tonsil inflammation count"
+   salience $count
+   agenda-group "DISEASE-MATCHED-SYMPTOMS-COUNT"
+   lock-on-active
+   when
+       $diagnosis: Diagnosis($symptoms: symptoms, $bodyTemperature: bodyTemperature)
+       $disease: Disease(name == Diseases.TONSIL_INFLAMMATION)
+       $diseases: DiseaseMap()
+       $count: Number(intValue > 0) from accumulate
+       (
+           Symptom(name == Symptoms.SORE_THROAT ||
+                   name == Symptoms.HEADACHE ||
+                   (name == Symptoms.BODY_TEMPERATURE && ($bodyTemperature >= 40 && $bodyTemperature <= 41)) ||
+                   name == Symptoms.TREMBLING ||
+                   name == Symptoms.YELLOW_NASAL_PHLEGM ||
+                   name == Symptoms.ACHE_THAT_SPREADS_TO_EARS ||
+                   name == Symptoms.APPETITE_LOSS ||
+                   name == Symptoms.TIREDNESS)
+           from $symptoms,
+           init(int count = 0;),
+           action(count += 1;),
+           reverse(count -= 1;),
+           result(count)
+       )
+   then
+       System.out.println("Tonsil Inflammation: " + $count);
+       modify($diseases) { put($disease, $count) }
+   end
+
+
+rule "Sinus infection count"
+   salience $count
+   agenda-group "DISEASE-MATCHED-SYMPTOMS-COUNT"
+   lock-on-active
+   when
+       $diagnosis: Diagnosis($symptoms: symptoms, $bodyTemperature: bodyTemperature)
+       $disease: Disease(name == Diseases.SINUS_INFECTION)
+       $diseases: DiseaseMap()
+       $count: Number(intValue > 0) from accumulate
+       (
+           Symptom(name == Symptoms.SWOLLEN_EYES ||
+                   name == Symptoms.HEADACHE ||
+                   name == Symptoms.YELLOW_NASAL_PHLEGM ||
+                   name == Symptoms.SORE_THROAT ||
+                   (name == Symptoms.BODY_TEMPERATURE && ($diagnosis.bodyTemperature >= 40 && $diagnosis.bodyTemperature <= 41)) ||
+                   name == Symptoms.COUGHING ||
+                   name == Symptoms.APPETITE_LOSS ||
+                   name == Symptoms.TIREDNESS ||
+                   name == Symptoms.HAD_FLU_OR_FEVER_IN_THE_LAST_60_DAYS)
+           from $symptoms,
+           init(int count = 0;),
+           action(count += 1;),
+           reverse(count -= 1;),
+           result(count)
+       )
+   then
+       System.out.println("Sinus infection: " + $count);
+       modify($diseases) { put($disease, $count) }
+   end
+
+
+rule "Hypertension count"
+   salience $count
+   agenda-group "DISEASE-MATCHED-SYMPTOMS-COUNT"
+   lock-on-active
+   when
+       $diagnosis: Diagnosis($symptoms: symptoms, $bodyTemperature: bodyTemperature)
+       $disease: Disease(name == Diseases.HYPERTENSION)
+       $diseases: DiseaseMap()
+       $count: Number(intValue > 0) from accumulate
+       (
+           Symptom(name == Symptoms.HAD_HIGH_BLOOD_PRESSURE_IN_THE_LAST_6_MONTHS)
+           from $symptoms,
+           init(int count = 0;),
+           action(count += 1;),
+           reverse(count -= 1;),
+           result(count)
+       )
+   then
+       System.out.println("Hypertension: " + $count);
+       modify($diseases) { put($disease, $count) }
+   end
+
+
+rule "Diabetes count"
+   salience $count
+   agenda-group "DISEASE-MATCHED-SYMPTOMS-COUNT"
+   lock-on-active
+   when
+       $diagnosis: Diagnosis($symptoms: symptoms, $bodyTemperature: bodyTemperature)
+       $disease: Disease(name == Diseases.DIABETES)
+       $diseases: DiseaseMap()
+       $count: Number(intValue > 0) from accumulate
+       (
+           Symptom(name == Symptoms.OFTEN_URINATION ||
+                   name == Symptoms.WEIGHT_LOSS ||
+                   name == Symptoms.TIREDNESS ||
+                   name == Symptoms.NAUSEA_AND_VOMITTING)
+           from $symptoms,
+           init(int count = 0;),
+           action(count += 1;),
+           reverse(count -= 1;),
+           result(count)
+       )
+   then
+       System.out.println("Diabetes: " + $count);
+       modify($diseases) { put($disease, $count) }
+   end
+
+
+rule "Chronic kidney disease count"
+   salience $count
+   agenda-group "DISEASE-MATCHED-SYMPTOMS-COUNT"
+   lock-on-active
+   when
+       $diagnosis: Diagnosis($symptoms: symptoms, $bodyTemperature: bodyTemperature)
+       $disease: Disease(name == Diseases.CHRONIC_KINDEY_DISEASE)
+       $diseases: DiseaseMap()
+       $count: Number(intValue > 0) from accumulate
+       (
+           Symptom(name == Symptoms.TIREDNESS ||
+                   name == Symptoms.NOCTURIA ||
+                   name == Symptoms.LEGS_AND_JOINTS_SWELLING ||
+                   name == Symptoms.CHOKING ||
+                   name == Symptoms.CHEST_PAIN ||
+                   name == Symptoms.HAS_HYPERTENSION_FOR_MORE_THAN_6_MONTHS ||
+                   name == Symptoms.HAS_DIABETES)
+           from $symptoms,
+           init(int count = 0;),
+           action(count += 1;),
+           reverse(count -= 1;),
+           result(count)
+       )
+   then
+       System.out.println("Chronic kidney diseases: " + $count);
+       modify($diseases) { put($disease, $count) }
+   end
+
+
+rule "Acute kidney injury count"
+   salience $count
+   agenda-group "DISEASE-MATCHED-SYMPTOMS-COUNT"
+   lock-on-active
+   when
+       $diagnosis: Diagnosis($symptoms: symptoms, $bodyTemperature: bodyTemperature)
+       $disease: Disease(name == Diseases.ACUTE_KINDEY_INJURY)
+       $diseases: DiseaseMap()
+       $count: Number(intValue > 0) from accumulate
+       (
+           Symptom(name == Symptoms.TIREDNESS ||
+                   name == Symptoms.CHOKING ||
+                   name == Symptoms.LEGS_AND_JOINTS_SWELLING ||
+                   name == Symptoms.DIARRHEA ||
+                   name == Symptoms.CHEST_PAIN ||
+                   name == Symptoms.SURGRERY_RECOVERY ||
+                   name == Symptoms.DIAGNOSED_WITH_DISEASE_THAT_HAS_RAISED_BODY_TEMPERATURE ||
+                   name == Symptoms.TOOK_ANTIBIOTICS_IN_THE_LAST_21_DAYS)
+           from $symptoms,
+           init(int count = 0;),
+           action(count += 1;),
+           reverse(count -= 1;),
+           result(count)
+       )
+   then
+       System.out.println("Acute kidney injury: " + $count);
+       modify($diseases) { put($disease, $count) }
+   end
+
+

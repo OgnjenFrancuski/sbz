@@ -1,0 +1,43 @@
+<table class="table table-hover table-sm table-striped">
+  <tbody>
+    <tr>
+      <th>First name</th>
+      <td>{{patient.firstName}}</td>
+    </tr>
+    <tr>
+      <th>Last name</th>
+      <td>{{patient.lastName}}</td>
+    </tr>
+    <tr>
+      <th>Personal ID</th>
+      <td>{{patient.personalId}}</td>
+    </tr>
+    <tr>
+      <th>Health card ID</th>
+      <td>{{patient.healthCardId}}</td>
+    </tr>
+    <tr>
+      <th>Allergies</th>
+      <td>
+        <button type="button" class="btn btn-info btn-sm" (click)="openAllergiesModal(allergensTemplateDetails, patient)">Show</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+<ng-template #allergensTemplateDetails>
+
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">{{patient.firstName + ' ' + patient.lastName}}</h4>
+    <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+
+  <div class="modal-body">
+    <app-ingredient-table [data]="patient.allergicIngredients" [show-update]="false" [show-delete]="false"></app-ingredient-table>
+  </div>
+
+</ng-template>

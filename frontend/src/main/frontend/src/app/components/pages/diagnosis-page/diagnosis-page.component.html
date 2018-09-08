@@ -1,0 +1,333 @@
+<div class="container">
+
+  <br/>
+  <br/>
+  <br/>
+  <br/>
+  <div class="row">
+
+
+    <!-- Disease ranking tool -->
+    <div class="col-md-6">
+      <div class="row">
+        <div class="col-md-12">
+          <span>Disease ranking by entered symptoms: </span>
+          <span class="btn-group btn-group-sm text-center pull-right">
+                  <button type="button" class="btn btn-sm btn-success" (click)="showDiseasesRanking()" [disabled]="selectedSymptoms.length < 1">Run</button>
+                  <button *ngIf="diseaseRanking.length > 0" type="button" class="btn btn-sm btn-info" (click)="openTemplate(diseaseRankingTemplate)">Show</button>
+                  <button type="button" class="btn btn-sm btn-warning" (click)="resetDiseaseRanking()">Reset</button>
+                </span>
+        </div>
+      </div>
+    </div>
+    <!-- Disease ranking tool -->
+
+    <!-- Disease search bar -->
+    <div class="col-md-6">
+      <div class="form-group">
+        <input placeholder="Search diseases..."
+               [(ngModel)]="selectedDiseaseName"
+               [typeahead]="diseasesNames"
+               class="form-control">
+      </div>
+      <div class="btn-group btn-group-sm pull-right">
+        <button type="button" class="btn btn-sm btn-success" (click)="showSymptoms()">Run</button>
+        <button *ngIf="diseaseSortedSymptoms" type="button" class="btn btn-sm btn-info" (click)="openTemplate(sortedDiseaseSymptomsTemplate)">Show</button>
+        <button type="button" class="btn btn-sm btn-warning" (click)="resetSymptoms()">Reset</button>
+      </div>
+    </div>
+    <!-- Disease search bar -->
+
+  </div>
+
+  <br/>
+  <br/>
+  <hr/>
+  <br/>
+  <br/>
+  <div class="row">
+    <div class="col-md-12" style="margin: auto;">
+
+      <aw-wizard>
+
+
+
+        <!-- PATIENT -->
+        <aw-wizard-step stepTitle="Find patient">
+          <div class="container">
+
+            <div class="row">
+              <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-sm btn-success" [disabled]="selectedPatient == null" awNextStep>Next</button>
+              </div>
+            </div>
+
+            <br/>
+            <br/>
+            <br/>
+
+            <div class="row">
+              <div class="col-md-12" style="margin: auto;">
+                <!-- Selected patient -->
+                <app-patient-details *ngIf="selectedPatient" [data]="selectedPatient"></app-patient-details>
+                <!-- End of Selected patient -->
+                <br/>
+                <br/>
+                <br/>
+                <!-- Table of available patient -->
+                <app-patient-table [data]="patients" [show-update]="false" [show-delete]="false" [show-add]="isPhysician()"></app-patient-table>
+                <!-- End of Table of available patient -->
+
+              </div>
+
+            </div>
+
+          </div>
+        </aw-wizard-step>
+        <!-- END OF PATIENT -->
+
+
+
+        <!-- SYMPTOMS -->
+        <aw-wizard-step stepTitle="Enter symptoms">
+          <div class="container">
+
+            <div class="row">
+              <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-sm btn-warning" awPreviousStep="">Back</button>
+                <button type="button" class="btn btn-sm btn-success" [disabled]="selectedSymptoms.length < 1" awNextStep>Next</button>
+              </div>
+            </div>
+
+            <br/>
+            <br/>
+            <br/>
+
+            <div class="row">
+              <div class="col-md-12">
+                <div class="form-group">
+                  <input [(ngModel)]="bodyTemperature" placeholder="Patient measured temperature..." type="text" class="form-control">
+                </div>
+                <div class="btn-group btn-group-sm pull-right">
+                  <button type="button" class="btn btn-sm btn-success" (click)="confirmTemperature()">Confirm</button>
+                  <button type="button" class="btn btn-sm btn-warning" (click)="resetTemperature()">Reset</button>
+
+                </div>
+                <br/>
+                <br/>
+                <br/>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <!-- Table of selected symptoms -->
+                <app-symptom-table [data]="selectedSymptoms" [show-update]="false" [show-delete]="false" [show-add]="false" [show-remove]="isPhysician()"></app-symptom-table>
+                <!-- End of Table of selected symptoms -->
+              </div>
+
+              <div class="col-md-6">
+                <!-- Table of available symptoms -->
+                <app-symptom-table [data]="symptoms" [show-update]="false" [show-delete]="false" [show-remove]="false" [show-add]="isPhysician()"></app-symptom-table>
+                <!-- End of Table of available symptoms -->
+              </div>
+            </div>
+
+          </div>
+        </aw-wizard-step>
+        <!-- END OF SYMPTOMS -->
+
+
+        <!-- DIAGNOSTICS -->
+        <aw-wizard-step stepTitle="Diagnostics">
+
+          <div class="container">
+
+            <div class="row">
+              <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-sm btn-warning" awPreviousStep>Back</button>
+                <button type="button" class="btn btn-sm btn-success" awNextStep>Next</button>
+              </div>
+            </div>
+
+            <br/>
+            <br/>
+            <br/>
+
+            <div class="text-center">
+              <br/>
+              <button type="button" class="btn btn-primary" (click)="runDiagnostics()">Run diagnostics</button>
+              <br/>
+              <br/>
+            </div>
+
+            <div class="row">
+
+              <div class="col-md-6">
+                <p>Diagnosed diseases:</p>
+                <!-- Table of selected symptoms -->
+                <app-disease-table [data]="selectedDiseases" [show-update]="false" [show-delete]="false" [show-add]="false" [show-remove]="isPhysician()"></app-disease-table>
+                <!-- End of Table of selected symptoms -->
+              </div>
+
+              <div class="col-md-6">
+                <p>Available diseases:</p>
+                <!-- Table of selected symptoms -->
+                <app-disease-table [data]="diseases" [show-update]="false" [show-delete]="false" [show-remove]="false" [show-add]="isPhysician()"></app-disease-table>
+                <!-- End of Table of selected symptoms -->
+              </div>
+
+            </div>
+
+          </div>
+        </aw-wizard-step>
+        <!-- END OF DIAGNOSTICS -->
+
+
+
+        <!-- MEDICATION -->
+        <aw-wizard-step stepTitle="Prescribe medications">
+
+          <div class="row">
+            <div class="btn-group btn-group-sm">
+              <button type="button" class="btn btn-sm btn-warning" awPreviousStep="">Back</button>
+              <button type="button" class="btn btn-sm btn-success" [disabled]="!medicationIsValid" awNextStep (click)="prepareDiagnosis()">Next</button>
+            </div>
+          </div>
+
+          <br/>
+          <br/>
+          <br/>
+
+          <div class="text-center">
+            <br/>
+            <button type="button" class="btn btn-primary" (click)="validateDiagnostics()">Validate</button>
+            <br/>
+            <br/>
+          </div>
+
+          <div *ngIf="allergicMedications.length > 0" class="row">
+
+            <div class="col-md-12">
+              <br/>
+              <br/>
+              <br/>
+              <p>Patient is allergic to:</p>
+              <app-medication-table [data]="allergicMedications" [show-update]="false" [show-delete]="false" [show-add]="false"></app-medication-table>
+              <br/>
+              <br/>
+              <br/>
+            </div>
+
+          </div>
+
+          <div class="row">
+
+            <div class="col-md-6">
+              <p>Selected medications:</p>
+              <!-- Table of selected symptoms -->
+              <app-medication-table [data]="selectedMedications" [show-update]="false" [show-delete]="false" [show-add]="false" [show-remove]="isPhysician()"></app-medication-table>
+              <!-- End of Table of selected symptoms -->
+            </div>
+
+            <div class="col-md-6">
+              <p>Available medications:</p>
+              <!-- Table of available symptoms -->
+              <app-medication-table [data]="medications" [show-update]="false" [show-delete]="false" [show-remove]="false" [show-add]="isPhysician()"></app-medication-table>
+              <!-- End of Table of available symptoms -->
+            </div>
+
+          </div>
+
+        </aw-wizard-step>
+        <!-- END OF MEDICATION -->
+
+
+
+        <!-- OVERVIEW -->
+        <aw-wizard-step stepTitle="Overview">
+
+          <div class="container">
+
+            <div class="row">
+              <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-sm btn-warning" awPreviousStep>Back</button>
+              </div>
+            </div>
+
+            <br/>
+            <br/>
+            <br/>
+
+            <div class="text-center">
+              <br/>
+              <button type="button" class="btn btn-primary" (click)="submit()">Submit</button>
+              <br/>
+              <br/>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                <app-diagnosis-details *ngIf="diagnosis" [data]="diagnosis"></app-diagnosis-details>
+              </div>
+            </div>
+
+          </div>
+        </aw-wizard-step>
+        <!-- END OF OVERVIEW -->
+
+
+      </aw-wizard>
+    </div>
+  </div>
+
+</div>
+
+
+<ng-template #sortedDiseaseSymptomsTemplate>
+
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">{{'Symptoms by significance for: ' + diseaseSortedSymptoms.name}}</h4>
+    <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+
+  <div class="modal-body">
+    <div class="row">
+      <div class="col-md-6">
+        <p>Generic symptoms:</p>
+        <app-symptom-table [data]="diseaseSortedSymptoms.genericSymptoms" [show-update]="false" [show-remove]="false" [show-add]="false" [show-delete]="false"></app-symptom-table>
+      </div>
+      <div class="col-md-6">
+        <p>Specific symptoms:</p>
+        <app-symptom-table [data]="diseaseSortedSymptoms.specificSymptoms" [show-update]="false" [show-remove]="false" [show-add]="false" [show-delete]="false"></app-symptom-table>
+      </div>
+    </div>
+  </div>
+
+</ng-template>
+
+
+<ng-template #diseaseRankingTemplate>
+
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">{{'Disease ranking by satisfied symptoms'}}</h4>
+    <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+
+  <div class="modal-body">
+    <div class="row">
+      <div class="col-md-12">
+        <app-disease-symptom-count-table [data]="diseaseRanking"></app-disease-symptom-count-table>
+      </div>
+    </div>
+  </div>
+
+</ng-template>
+
+<toaster-container [toasterconfig]="toasterConfig"></toaster-container>

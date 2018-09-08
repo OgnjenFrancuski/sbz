@@ -1,0 +1,77 @@
+<div class="login-background"></div>
+<div class="container">
+  <div class="row">
+    <div class="col-md-6" style="margin: auto;">
+      <div class="panel panel-login">
+        <div class="panel-heading">
+          <div class="panel-heading-left">
+            <h3 class="panel-title">Login to <span class="inner-navbar-brand">CDSS</span></h3>
+            Enter your username and password to log on:
+          </div>
+          <div class="panel-heading-right">
+            <i class="fa fa-lock"></i>
+          </div>
+        </div>
+        <div class="panel-body">
+
+          <!-- start of Login form -->
+          <form [formGroup]="form" (ngSubmit)="login()" accept-charset="UTF-8">
+
+            <!-- start of Username -->
+            <div class="form-group">
+              <input
+                formControlName="username"
+                id="username"
+                placeholder="username..."
+                type="text"
+                class="form-control">
+              <div *ngIf="username.touched && username.invalid" class="alert alert-danger">
+                <div id="usernameRequiredError" *ngIf="username.errors.required; else containSpace">
+                  The username is required!
+                </div>
+                <ng-template #containSpace>
+                  <ng-container *ngIf="username.errors.cannotContainSpace">
+                    <div id="usernameContainSpaceError">
+                      The username can't contain space!
+                    </div>
+                  </ng-container>
+                </ng-template>
+              </div>
+            </div>
+            <!-- end of Username -->
+
+            <!-- start of Passwords -->
+            <div class="form-group">
+              <input
+                formControlName="password"
+                id="password"
+                placeholder="password..."
+                type="password"
+                class="form-control">
+              <div *ngIf="password.touched && password.invalid" class="alert alert-danger">
+                <div id="passwordRequiredError" *ngIf="password.errors.required">
+                  The password is required!
+                </div>
+              </div>
+            </div>
+            <!-- end of Password -->
+
+            <button class="btn" type="submit" [disabled]="!form.valid">Sign in</button>
+          </form>
+          <!-- end of Login form -->
+
+          <div class="sing-up">
+            You don't have account? <a routerLink="/registration">Sign up now</a>
+          </div>
+          <div class="link-to-home">
+            Back to <a routerLink="/articles">home page</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<toaster-container [toasterconfig]="toasterConfig"></toaster-container>
+
+

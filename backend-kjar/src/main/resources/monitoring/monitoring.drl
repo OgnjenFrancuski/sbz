@@ -1,0 +1,59 @@
+package monitoring;
+
+import rs.ac.uns.ftn.sbz.backend.model.Diagnosis;
+import rs.ac.uns.ftn.sbz.backend.model.Patient;
+import rs.ac.uns.ftn.sbz.backend.model.Disease;
+import rs.ac.uns.ftn.sbz.backend.model.codebook.Diseases;
+import rs.ac.uns.ftn.sbz.backend.model.monitoring.PatientMonitoring;
+import rs.ac.uns.ftn.sbz.backend.model.monitoring.event.RiseInOxygenLevels;
+import rs.ac.uns.ftn.sbz.backend.model.monitoring.event.Urination;
+import rs.ac.uns.ftn.sbz.backend.model.monitoring.event.HeartBeat;
+import rs.ac.uns.ftn.sbz.backend.model.monitoring.event.Notification;
+
+dialect "mvel"
+
+
+rule "Oxygen problems"
+    when
+        $monitor: PatientMonitoring($patient: patient, bloodOxygenLevels < 70.0)
+        not(RiseInOxygenLevels($patient.id == patient.id) over window:time(15m))
+    then
+        insert(new Notification($patient, "Oxygen problems"));
+        drools.halt();
+    end
+
+
+rule "More than 25 heartbeats in a second"
+    when
+        $monitor: PatientMonitoring($patient: patient)
+        $hb1: HeartBeat($patient.id == patient.id)
+        Number(intValue > 25) from accumulate
+        (
+            $hb2: HeartBeat(this meets[10s] $hb1, this != $hb1, $patient.id == patient.id),
+            count($hb2)
+        )
+    then
+        insert(new Notification($patient, "More than 25 heartbeats in 10 seconds"));
+        drools.halt();
+    end
+
+
+rule "Emergency dialysis"
+    when
+        $monitor: PatientMonitoring($patient: patient)
+        $diagnosis: Diagnosis(hasDisease(Diseases.CHRONIC_KINDEY_DISEASE))
+        $hb1: HeartBeat($patient.id == patient.id)
+        Number(intValue > 10) from accumulate
+        (
+            $hb2: HeartBeat(this meets[10s] $hb1, this != $hb1, $patient.id == patient.id),
+            count($hb2)
+        )
+        Number(intValue < 100) from accumulate
+        (
+            Urination($kol: amount) over window:time(12h),
+            sum($kol)
+        )
+    then
+        insert(new Notification($patient, "Emergency dialysis"));
+        drools.halt();
+    end

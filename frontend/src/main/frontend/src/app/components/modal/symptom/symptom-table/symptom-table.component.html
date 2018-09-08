@@ -1,0 +1,30 @@
+<table class="table table-hover table-sm table-striped">
+
+  <thead>
+  <tr>
+    <th scope="col">ID</th>
+    <th scope="col">Name</th>
+    <th *ngIf="showDelete || showUpdate || showDelete || showAdd" scope="col">Actions</th>
+  </tr>
+  </thead>
+
+  <tbody>
+
+  <tr *ngFor="let d of data">
+
+    <td>{{d.id}}</td>
+    <td>{{d.name}}</td>
+
+    <td>
+      <div class="btn-group btn-group-sm">
+        <button *ngIf="showAdd" type="button" class="btn btn-success" (click)="addClickedEvent(d)">Add</button>
+        <button *ngIf="showRemove" type="button" class="btn btn-danger" (click)="removeClickedEvent(d)">Remove</button>
+        <button *ngIf="showUpdate" type="button" class="btn btn-warning" (click)="updateClickedEvent(d)">Update</button>
+        <button *ngIf="showDelete" type="button" class="btn btn-danger" (click)="deleteClickedEvent(d.id)">Delete</button>
+      </div>
+    </td>
+
+  </tr>
+
+  </tbody>
+</table>

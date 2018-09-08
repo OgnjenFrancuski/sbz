@@ -1,0 +1,34 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md-12" style="margin: auto;">
+
+      <div class="text-center">
+        <br/>
+        <button type="button" class="btn btn-success" (click)="openFormModal(formTemplate, null)">Insert new</button>
+        <br/>
+        <br/>
+      </div>
+
+      <app-ingredient-table [data]="data" [show-update]="isAdmin()" [show-delete]="isAdmin()"></app-ingredient-table>
+
+      <ng-template #formTemplate>
+
+        <div class="modal-header">
+          <h4 class="modal-title pull-left">{{selected == null ? 'Insert new' : 'Update'}}</h4>
+          <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <app-ingredient-form></app-ingredient-form>
+        </div>
+
+      </ng-template>
+
+
+    </div>
+  </div>
+</div>
+
+<toaster-container [toasterconfig]="toasterConfig"></toaster-container>

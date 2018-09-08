@@ -1,0 +1,141 @@
+<!-- start of Login form -->
+<form [formGroup]="form" (ngSubmit)="submit()" accept-charset="UTF-8">
+
+  <!-- start of First name -->
+  <div class="form-group">
+
+    <input
+      formControlName="firstName"
+      id="firstName"
+      placeholder="First name..."
+      type="text"
+      class="form-control">
+
+    <!--<div *ngIf="firstName.touched && firstName.invalid" class="alert alert-danger">-->
+      <!--<div id="firstNameRequiredError" *ngIf="firstName.errors.required; else containSpace">-->
+        <!--The first name is required!-->
+      <!--</div>-->
+    <!--</div>-->
+
+  </div>
+  <!-- end of First name -->
+
+
+  <!-- start of Last name -->
+  <div class="form-group">
+
+    <input
+      formControlName="lastName"
+      id="lastName"
+      placeholder="Last name..."
+      type="text"
+      class="form-control">
+
+    <!--<div *ngIf="lastName.touched && lastName.invalid" class="alert alert-danger">-->
+      <!--<div id="lastNameRequiredError" *ngIf="lastName.errors.required; else containSpace">-->
+        <!--The first name is required!-->
+      <!--</div>-->
+    <!--</div>-->
+
+  </div>
+  <!-- end of Last name -->
+
+
+  <!-- start of Personal ID -->
+  <div class="form-group">
+
+    <input
+      formControlName="personalId"
+      id="personalId"
+      placeholder="Personal ID..."
+      type="text"
+      class="form-control">
+
+    <!--<div *ngIf="lastName.touched && lastName.invalid" class="alert alert-danger">-->
+    <!--<div id="lastNameRequiredError" *ngIf="lastName.errors.required; else containSpace">-->
+    <!--The first name is required!-->
+    <!--</div>-->
+    <!--</div>-->
+
+  </div>
+  <!-- end of PersonalID -->
+
+
+  <!-- start of HCID -->
+  <div class="form-group">
+
+    <input
+      formControlName="healthCardId"
+      id="healthCardId"
+      placeholder="Health Card ID..."
+      type="text"
+      class="form-control">
+
+    <!--<div *ngIf="lastName.touched && lastName.invalid" class="alert alert-danger">-->
+    <!--<div id="lastNameRequiredError" *ngIf="lastName.errors.required; else containSpace">-->
+    <!--The first name is required!-->
+    <!--</div>-->
+    <!--</div>-->
+
+  </div>
+  <!-- end of HCID -->
+
+
+  <!-- start of allergics table -->
+  <table *ngIf="allergics.length > 0" class="table table-hover table-sm table-striped">
+
+    <thead>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Name</th>
+      <th scope="col">Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr *ngFor="let d of allergics">
+      <td>{{d.id}}</td>
+      <td>{{d.name}}</td>
+      <td>
+        <button type="button" class="btn btn-danger btn-sm" (click)="removeItem(d.id)">Remove</button>
+      </td>
+    </tr>
+    </tbody>
+
+  </table>
+  <!-- end of allergics table -->
+
+
+  <!-- start of ingredients table -->
+  <table *ngIf="ingredients" class="table table-hover table-sm table-striped">
+
+    <thead>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Name</th>
+      <th scope="col">Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr *ngFor="let d of ingredients">
+      <td>{{d.id}}</td>
+      <td>{{d.name}}</td>
+      <td>
+        <button type="button" class="btn btn-success btn-sm" (click)="addItem(d.id)">Add</button>
+      </td>
+    </tr>
+    </tbody>
+
+  </table>
+  <!-- end of ingredients table -->
+
+
+  <!-- Buttons -->
+  <div class="btn-group btn-group-sm pull-right">
+    <button class="btn btn-success" type="submit" [disabled]="!form.valid">Submit</button>
+    <button class="btn btn-warning" type="button" (click)="clearClicked()">Clear</button>
+  </div>
+
+</form>
+<!-- end of Login form -->

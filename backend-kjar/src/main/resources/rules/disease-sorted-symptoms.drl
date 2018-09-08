@@ -1,0 +1,142 @@
+package rules
+
+import rs.ac.uns.ftn.sbz.backend.model.Diagnosis;
+import rs.ac.uns.ftn.sbz.backend.model.Disease;
+import rs.ac.uns.ftn.sbz.backend.model.enumeration.DiseaseGroup;
+import rs.ac.uns.ftn.sbz.backend.model.enumeration.MedicationType;
+import rs.ac.uns.ftn.sbz.backend.model.Symptom;
+import rs.ac.uns.ftn.sbz.backend.model.Patient;
+import rs.ac.uns.ftn.sbz.backend.model.codebook.Symptoms;
+import rs.ac.uns.ftn.sbz.backend.model.codebook.Diseases;
+import rs.ac.uns.ftn.sbz.backend.model.util.SymptomCounter;
+import rs.ac.uns.ftn.sbz.backend.service.SymptomService;
+import org.apache.commons.lang3.time.DateUtils;
+import java.util.List;
+import java.util.Date;
+
+dialect "mvel"
+
+rule "Flu symptoms"
+    agenda-group "DISEASE-SYMPTOMS"
+    lock-on-active
+    when
+        $disease: Disease(name == Diseases.FLU)
+    then
+        $disease.addGenericSymptom(new Symptom(Symptoms.RUNNY_NOSE));
+        $disease.addGenericSymptom(new Symptom(Symptoms.SORE_THROAT));
+        $disease.addGenericSymptom(new Symptom(Symptoms.COUGHING));
+        $disease.addGenericSymptom(new Symptom(Symptoms.SNEEZING));
+        $disease.addGenericSymptom(new Symptom(Symptoms.HEADACHE));
+    end
+
+
+rule "Fever symptoms"
+    agenda-group "DISEASE-SYMPTOMS"
+    lock-on-active
+    when
+        $disease: Disease(name == Diseases.FEVER)
+    then
+        $disease.addGenericSymptom(new Symptom(Symptoms.HEADACHE));
+        $disease.addGenericSymptom(new Symptom(Symptoms.BODY_TEMPERATURE));
+        $disease.addGenericSymptom(new Symptom(Symptoms.TREMBLING));
+        $disease.addGenericSymptom(new Symptom(Symptoms.SORE_THROAT));
+        $disease.addGenericSymptom(new Symptom(Symptoms.COUGHING));
+        $disease.addGenericSymptom(new Symptom(Symptoms.SNEEZING));
+        $disease.addGenericSymptom(new Symptom(Symptoms.RUNNY_NOSE));
+    end
+
+
+rule "Tonsil inflammation symptoms"
+    agenda-group "DISEASE-SYMPTOMS"
+    lock-on-active
+    when
+        $disease: Disease(name == Diseases.TONSIL_INFLAMMATION)
+    then
+        $disease.addGenericSymptom(new Symptom(Symptoms.YELLOW_NASAL_PHLEGM));
+        $disease.addGenericSymptom(new Symptom(Symptoms.ACHE_THAT_SPREADS_TO_EARS));
+        $disease.addGenericSymptom(new Symptom(Symptoms.APPETITE_LOSS));
+        $disease.addGenericSymptom(new Symptom(Symptoms.SORE_THROAT));
+        $disease.addGenericSymptom(new Symptom(Symptoms.HEADACHE));
+        $disease.addGenericSymptom(new Symptom(Symptoms.BODY_TEMPERATURE));
+        $disease.addGenericSymptom(new Symptom(Symptoms.TIREDNESS));
+        $disease.addGenericSymptom(new Symptom(Symptoms.TREMBLING));
+    end
+
+
+rule "Sinus infection symptoms"
+    agenda-group "DISEASE-SYMPTOMS"
+    lock-on-active
+    when
+        $disease: Disease(name == Diseases.SINUS_INFECTION)
+    then
+        $disease.addGenericSymptom(new Symptom(Symptoms.YELLOW_NASAL_PHLEGM));
+        $disease.addGenericSymptom(new Symptom(Symptoms.SWOLLEN_EYES));
+        $disease.addGenericSymptom(new Symptom(Symptoms.BODY_TEMPERATURE));
+        $disease.addGenericSymptom(new Symptom(Symptoms.HEADACHE));
+        $disease.addGenericSymptom(new Symptom(Symptoms.SORE_THROAT));
+        $disease.addGenericSymptom(new Symptom(Symptoms.COUGHING));
+        $disease.addGenericSymptom(new Symptom(Symptoms.APPETITE_LOSS));
+        $disease.addGenericSymptom(new Symptom(Symptoms.TIREDNESS));
+
+        $disease.addSpecificSymptom(new Symptom(Symptoms.HAD_FLU_OR_FEVER_IN_THE_LAST_60_DAYS));
+
+
+    end
+
+
+rule "Hypertension symptoms"
+    agenda-group "DISEASE-SYMPTOMS"
+    lock-on-active
+    when
+        $disease: Disease(name == Diseases.HYPERTENSION)
+    then
+        $disease.addGenericSymptom(new Symptom(Symptoms.HAD_HIGH_BLOOD_PRESSURE_IN_THE_LAST_6_MONTHS));
+    end
+
+
+rule "Diabetes symptoms"
+    agenda-group "DISEASE-SYMPTOMS"
+    lock-on-active
+    when
+        $disease: Disease(name == Diseases.DIABETES)
+    then
+        $disease.addGenericSymptom(new Symptom(Symptoms.OFTEN_URINATION));
+        $disease.addGenericSymptom(new Symptom(Symptoms.WEIGHT_LOSS));
+        $disease.addGenericSymptom(new Symptom(Symptoms.TIREDNESS));
+        $disease.addGenericSymptom(new Symptom(Symptoms.NAUSEA_AND_VOMITTING));
+    end
+
+
+rule "Chronic kidney disease symptoms"
+    agenda-group "DISEASE-SYMPTOMS"
+    lock-on-active
+    when
+        $disease: Disease(name == Diseases.CHRONIC_KINDEY_DISEASE)
+    then
+        $disease.addGenericSymptom(new Symptom(Symptoms.LEGS_AND_JOINTS_SWELLING));
+        $disease.addGenericSymptom(new Symptom(Symptoms.CHEST_PAIN));
+        $disease.addGenericSymptom(new Symptom(Symptoms.CHOKING));
+        $disease.addGenericSymptom(new Symptom(Symptoms.NOCTURIA));
+        $disease.addGenericSymptom(new Symptom(Symptoms.TIREDNESS));
+
+        $disease.addSpecificSymptom(new Symptom(Symptoms.HAS_HYPERTENSION_FOR_MORE_THAN_6_MONTHS));
+        $disease.addSpecificSymptom(new Symptom(Symptoms.HAS_DIABETES));
+    end
+
+
+rule "Acute kidney injury symptoms"
+    agenda-group "DISEASE-SYMPTOMS"
+    lock-on-active
+    when
+        $disease: Disease(name == Diseases.ACUTE_KINDEY_INJURY)
+    then
+        $disease.addGenericSymptom(new Symptom(Symptoms.LEGS_AND_JOINTS_SWELLING));
+        $disease.addGenericSymptom(new Symptom(Symptoms.CHEST_PAIN));
+        $disease.addGenericSymptom(new Symptom(Symptoms.CHOKING));
+        $disease.addGenericSymptom(new Symptom(Symptoms.DIARRHEA));
+        $disease.addGenericSymptom(new Symptom(Symptoms.TIREDNESS));
+
+        $disease.addSpecificSymptom(new Symptom(Symptoms.SURGRERY_RECOVERY));
+        $disease.addSpecificSymptom(new Symptom(Symptoms.DIAGNOSED_WITH_DISEASE_THAT_HAS_RAISED_BODY_TEMPERATURE));
+        $disease.addSpecificSymptom(new Symptom(Symptoms.TOOK_ANTIBIOTICS_IN_THE_LAST_21_DAYS));
+    end

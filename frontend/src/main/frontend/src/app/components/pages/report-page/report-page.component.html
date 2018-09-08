@@ -1,0 +1,20 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md-12" style="margin: auto;">
+
+      <div class="text-center">
+        <br/>
+        <button type="button" class="btn btn-primary" (click)="getChronical()">Chronic disease patients</button>
+        <button type="button" class="btn btn-primary" (click)="getAddicted()">Addicted patients</button>
+        <button type="button" class="btn btn-primary" (click)="getWeak()">Weak immune system patients</button>
+        <br/>
+        <br/>
+      </div>
+
+      <app-patient-table [data]="data" [show-delete]="false" [show-update]="false" [show-add]="false"></app-patient-table>
+
+
+    </div>
+  </div>
+</div>
+

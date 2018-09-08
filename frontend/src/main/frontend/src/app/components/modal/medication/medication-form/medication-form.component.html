@@ -1,0 +1,87 @@
+<!-- start of Login form -->
+<form [formGroup]="form" (ngSubmit)="submit()" accept-charset="UTF-8">
+
+  <!-- start of med name -->
+  <div class="form-group">
+
+    <input
+      formControlName="name"
+      id="name"
+      placeholder="Medication name..."
+      type="text"
+      class="form-control">
+
+  </div>
+  <!-- end of med name -->
+
+
+  <!-- start of med type -->
+  <div class="form-group">
+
+      <select class="form-control" formControlName="type">
+        <option value="" selected disabled>Medication type...</option>
+        <option *ngFor="let t of types" [ngValue]="t">{{t}}</option>
+      </select>
+
+  </div>
+  <!-- end of med type -->
+
+
+  <!-- start of selected symptoms table -->
+  <table *ngIf="selectedIngredients.length > 0" class="table table-hover table-sm table-striped">
+
+    <thead>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Name</th>
+      <th scope="col">Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let d of selectedIngredients">
+        <td>{{d.id}}</td>
+        <td>{{d.name}}</td>
+        <td>
+          <button type="button" class="btn btn-danger btn-sm" (click)="removeItem(d.id)">Remove</button>
+        </td>
+      </tr>
+    </tbody>
+
+  </table>
+  <!-- end of selected symptoms table -->
+
+
+  <!-- start of symptoms table -->
+  <table *ngIf="ingredients" class="table table-hover table-sm table-striped">
+
+    <thead>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Name</th>
+      <th scope="col">Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr *ngFor="let d of ingredients">
+      <td>{{d.id}}</td>
+      <td>{{d.name}}</td>
+      <td>
+        <button type="button" class="btn btn-success btn-sm" (click)="addItem(d.id)">Add</button>
+      </td>
+    </tr>
+    </tbody>
+
+  </table>
+  <!-- end of symptoms table -->
+
+
+  <!-- Buttons -->
+  <div class="btn-group btn-group-sm pull-right">
+    <button class="btn btn-success" type="submit" [disabled]="!form.valid">Submit</button>
+    <button class="btn btn-warning" type="button" (click)="clearClicked()">Clear</button>
+  </div>
+
+</form>
+<!-- end of Login form -->

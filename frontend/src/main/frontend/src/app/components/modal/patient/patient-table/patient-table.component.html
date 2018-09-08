@@ -1,0 +1,56 @@
+<table class="table table-hover table-sm table-striped">
+
+  <thead>
+    <tr>
+      <th scope="col">First name</th>
+      <th scope="col">Last name</th>
+      <th scope="col">Personal ID</th>
+      <th scope="col">Health card ID</th>
+      <th scope="col">Allergies</th>
+      <th *ngIf="showDelete || showUpdate || showAdd" scope="col">Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr *ngFor="let d of data">
+
+      <td>{{d.firstName}}</td>
+      <td>{{d.lastName}}</td>
+      <td>{{d.personalId}}</td>
+      <td>{{d.healthCardId}}</td>
+
+      <td>
+        <button type="button" class="btn btn-info btn-sm" (click)="openAllergiesModal(allergensTemplate, d)">Show</button>
+      </td>
+
+
+      <td>
+        <div class="btn-group btn-group-sm">
+          <button *ngIf="showAdd" type="button" class="btn btn-success" (click)="addClickedEvent(d)">Add</button>
+          <button *ngIf="showUpdate" type="button" class="btn btn-warning" (click)="updateClickedEvent(d)">Update</button>
+          <button *ngIf="showDelete" type="button" class="btn btn-danger" (click)="deleteClickedEvent(d.id)">Delete</button>
+        </div>
+
+      </td>
+
+    </tr>
+
+  </tbody>
+</table>
+
+
+<ng-template #allergensTemplate>
+
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">{{selectedPatient.firstName + ' ' + selectedPatient.lastName}}</h4>
+    <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+
+  <div class="modal-body">
+    <app-ingredient-table [data]="selectedPatient.allergicIngredients" [show-update]="false" [show-delete]="false"></app-ingredient-table>
+  </div>
+
+</ng-template>

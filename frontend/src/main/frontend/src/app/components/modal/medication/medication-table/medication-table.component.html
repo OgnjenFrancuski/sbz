@@ -1,0 +1,52 @@
+<table class="table table-hover table-sm table-striped">
+
+  <thead>
+  <tr>
+    <th scope="col">Name</th>
+    <th scope="col">Type</th>
+    <th scope="col">Ingredients</th>
+    <th scope="col" *ngIf="showUpdate || showDelete || showAdd || showRemove">Actions</th>
+  </tr>
+  </thead>
+
+  <tbody>
+  <tr *ngFor="let d of data">
+
+    <td>{{d.name}}</td>
+    <td>{{d.type}}</td>
+
+    <td>
+      <button type="button" class="btn btn-info btn-sm" (click)="openIngredientsModal(ingredientsTemplate, d)">Show</button>
+    </td>
+
+    <td>
+      <div class="btn-group btn-group-sm">
+        <button *ngIf="showAdd" type="button" class="btn btn-success" (click)="addClickedEvent(d)">Add</button>
+        <button *ngIf="showRemove" type="button" class="btn btn-danger" (click)="removeClickedEvent(d)">Remove</button>
+        <button *ngIf="showUpdate" type="button" class="btn btn-warning" (click)="updateClickedEvent(d)">Update</button>
+        <button *ngIf="showDelete" type="button" class="btn btn-danger" (click)="deleteClickedEvent(d.id)">Delete</button>
+      </div>
+
+    </td>
+
+  </tr>
+
+  </tbody>
+</table>
+
+
+<ng-template #ingredientsTemplate>
+
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">{{selected.name}}</h4>
+    <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+
+  <div class="modal-body">
+    <app-ingredient-table [data]="selected.ingredients" [show-update]="false" [show-delete]="false"></app-ingredient-table>
+  </div>
+
+</ng-template>

@@ -1,0 +1,32 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md-12" style="margin: auto;">
+
+      <div class="text-center">
+        <br/>
+        <button type="button" class="btn btn-success" (click)="openFormModal(formTemplate, null)">Insert new</button>
+        <br/>
+        <br/>
+      </div>
+
+      <app-disease-table [data]="data" [show-delete]="isAdmin()" [show-update]="isAdmin()"></app-disease-table>
+
+      <ng-template #formTemplate>
+
+        <div class="modal-header">
+          <h4 class="modal-title pull-left">{{selected == null ? 'Insert new' : 'Update'}}</h4>
+          <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <app-disease-form [additional-data]="symptoms"></app-disease-form>
+        </div>
+
+      </ng-template>
+
+
+    </div>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+package rules
+
+import rs.ac.uns.ftn.sbz.backend.model.Diagnosis;
+import rs.ac.uns.ftn.sbz.backend.model.Patient;
+import rs.ac.uns.ftn.sbz.backend.model.Medication;
+import rs.ac.uns.ftn.sbz.backend.model.Ingredient;
+import rs.ac.uns.ftn.sbz.backend.model.util.MedicationList;
+import java.util.List;
+import java.util.ArrayList;
+
+dialect  "mvel"
+
+
+rule "Validating prescribed medication"
+    lock-on-active
+    agenda-group "ALLERGIES"
+    when
+        $patient: Patient($patientAllergies: allergicIngredients)
+        $diagnosis: Diagnosis($prescribedMedications: prescribedMedications)
+        $medicationAllergies: MedicationList()
+        $allergicMeds: List() from accumulate
+        (
+            $prescribedMed: Medication($ingredients: ingredients)
+            from $prescribedMedications,
+            init(List<Medication> l = new ArrayList();),
+            action
+            (
+              boolean found = false;
+              for(Ingredient allergie: $patientAllergies)
+              {
+                   if ($prescribedMed.hasIngredient(allergie) && !found)
+                   {
+                        l.add($prescribedMed);
+                        found = true;
+                   }
+              };
+            ),
+            result(l)
+        )
+    then
+        modify($medicationAllergies) {setMedications($allergicMeds)}
+end

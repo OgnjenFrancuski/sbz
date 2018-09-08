@@ -1,0 +1,285 @@
+package rules
+
+import rs.ac.uns.ftn.sbz.backend.model.Diagnosis;
+import rs.ac.uns.ftn.sbz.backend.model.Disease;
+import rs.ac.uns.ftn.sbz.backend.model.enumeration.DiseaseGroup;
+import rs.ac.uns.ftn.sbz.backend.model.enumeration.MedicationType;
+import rs.ac.uns.ftn.sbz.backend.model.Symptom;
+import rs.ac.uns.ftn.sbz.backend.model.Patient;
+import rs.ac.uns.ftn.sbz.backend.model.codebook.Symptoms;
+import rs.ac.uns.ftn.sbz.backend.model.codebook.Diseases;
+import rs.ac.uns.ftn.sbz.backend.model.util.SymptomCounter;
+import org.apache.commons.lang3.time.DateUtils;
+import java.util.Date;
+
+dialect  "mvel"
+
+
+// FIRST GROUP ---------------------------------------------------------------------------------------------------------
+
+
+rule "Flu"
+   salience($counter.value - $counter.difference())
+   agenda-group "DISEASE-DIAGNOSTIC"
+   lock-on-active
+   when
+       $diagnosis: Diagnosis($symptoms: symptoms, !hasDiseaseFromGroup(DiseaseGroup.FIRST))
+       $disease: Disease(name == Diseases.FLU)
+       $counter: SymptomCounter(found >= 4) from accumulate
+       (
+           Symptom(name == Symptoms.RUNNY_NOSE ||
+                   name == Symptoms.SORE_THROAT ||
+                   name == Symptoms.HEADACHE ||
+                   name == Symptoms.SNEEZING ||
+                   name == Symptoms.COUGHING)
+           from $symptoms,
+           init(SymptomCounter scFlu = new SymptomCounter(5, 0);),
+           action( scFlu.incFound();
+                   scFlu.incSalience();
+                   if (scFlu.foundAll())
+                   {
+                       scFlu.value = scFlu.value * scFlu.found;
+                   };
+                  ),
+           reverse(scFlu.decFound(); scFlu.decSalience();),
+           result(scFlu)
+       )
+   then
+       System.out.println("Flu: " + ($counter.getValue() - $counter.difference()));
+       modify($diagnosis) { addDisease($disease) }
+   end
+
+
+rule "Fever"
+    salience ($counter.value - $counter.difference())
+    agenda-group "DISEASE-DIAGNOSTIC"
+    lock-on-active
+    when
+       $diagnosis: Diagnosis($bodyTemperature: bodyTemperature, $symptoms: symptoms, !hasDiseaseFromGroup(DiseaseGroup.FIRST))
+       $disease: Disease(name == Diseases.FEVER)
+       $counter: SymptomCounter(found >= 4) from accumulate
+       (
+           Symptom(name == Symptoms.RUNNY_NOSE ||
+                   name == Symptoms.SORE_THROAT ||
+                   name == Symptoms.HEADACHE ||
+                   name == Symptoms.SNEEZING ||
+                   name == Symptoms.COUGHING ||
+                   (name == Symptoms.BODY_TEMPERATURE && $bodyTemperature >= 38.0) ||
+                   name == Symptoms.TREMBLING)
+           from $symptoms,
+           init(SymptomCounter scFev = new SymptomCounter(7, 0);),
+           action( scFev.incFound();
+                   scFev.incSalience();
+                   if (scFev.foundAll())
+                   {
+                       scFev.value = scFev.value * scFev.found;
+                   };
+                  ),
+           reverse(scFev.decFound(); scFev.decSalience();),
+           result(scFev)
+       )
+    then
+       modify($diagnosis) { addDisease($disease) }
+    end
+
+
+rule "Tonsil inflammation"
+    salience ($counter.value - $counter.difference())
+    agenda-group "DISEASE-DIAGNOSTIC"
+    lock-on-active
+    when
+        $diagnosis: Diagnosis($symptoms: symptoms, $bodyTemperature: bodyTemperature, !hasDiseaseFromGroup(DiseaseGroup.FIRST))
+        $disease: Disease(name == Diseases.TONSIL_INFLAMMATION)
+        $counter: SymptomCounter(found >= 4) from accumulate
+        (
+            Symptom(name == Symptoms.SORE_THROAT ||
+                    name == Symptoms.HEADACHE ||
+                    (name == Symptoms.BODY_TEMPERATURE && ($bodyTemperature >= 40 && $bodyTemperature <= 41)) ||
+                    name == Symptoms.TREMBLING ||
+                    name == Symptoms.YELLOW_NASAL_PHLEGM ||
+                    name == Symptoms.ACHE_THAT_SPREADS_TO_EARS ||
+                    name == Symptoms.APPETITE_LOSS ||
+                    name == Symptoms.TIREDNESS)
+            from $symptoms,
+            init(SymptomCounter scTi = new SymptomCounter(8, 0);),
+            action( scTi.incFound();
+                    scTi.incSalience();
+                    if (scTi.foundAll())
+                    {
+                        scTi.value += scTi.value * scTi.found;
+                    };
+                   ),
+            reverse(scTi.decFound(); scTi.decSalience();),
+            result(scTi)
+        )
+    then
+        System.out.println("Tonsil Inflammation: " + ($counter.getValue() - $counter.difference()));
+        modify($diagnosis) { addDisease($disease) }
+    end
+
+
+rule "Sinus infection"
+    salience($counter.value - $counter.difference())
+    agenda-group "DISEASES GROUP I"
+    lock-on-active
+    when
+        $diagnosis: Diagnosis($symptoms: symptoms, !hasDiseaseFromGroup(DiseaseGroup.FIRST))
+        $disease: Disease(name == Diseases.SINUS_INFECTION)
+        Patient($patientDiagnoses: diagnoses)
+        $specific: Number(intValue >= 0) from accumulate
+        (
+            Diagnosis((hasDisease(Diseases.FLU) || hasDisease(Diseases.FEVER)) && new Date() < DateUtils.addDays(new Date(date.getTime()), 60))
+            from $patientDiagnoses,
+                    init(int count = 0;),
+                    action(count = 1;),
+                    result(count)
+        )
+        $counter: SymptomCounter(found >= 4) from accumulate
+        (
+            Symptom(name == Symptoms.SWOLLEN_EYES ||
+                    name == Symptoms.HEADACHE ||
+                    name == Symptoms.YELLOW_NASAL_PHLEGM ||
+                    name == Symptoms.SORE_THROAT ||
+                    (name == Symptoms.BODY_TEMPERATURE && ($diagnosis.bodyTemperature >= 40 && $diagnosis.bodyTemperature <= 41)) ||
+                    name == Symptoms.COUGHING ||
+                    name == Symptoms.APPETITE_LOSS ||
+                    name == Symptoms.TIREDNESS)
+
+            from $symptoms,
+            init(SymptomCounter scSi = new SymptomCounter(8, 0);),
+            action( scSi.incFound();
+                    scSi.incSalience();
+                    if (scSi.foundAll())
+                    {
+                        scSi.value = scSi.value * scSi.found;
+                    };
+                   ),
+            reverse(scSi.decFound(); scSi.decSalience();),
+            result(scSi)
+        )
+    then
+        System.out.println("Sinus Infection: " + ($counter.getValue() - $counter.difference()));
+        modify($diagnosis) { addDisease($disease) }
+    end
+
+
+// SECOND GROUP --------------------------------------------------------------------------------------------------------
+
+rule "Hypertension"
+    agenda-group "DISEASE-DIAGNOSTIC"
+    lock-on-active
+    when
+        $diagnosis: Diagnosis(!hasDiseaseFromGroup(DiseaseGroup.SECOND))
+        $disease: Disease(name == Diseases.HYPERTENSION)
+        Patient($patientDiagnoses: diagnoses)
+        $salience: Number(intValue >= 10) from accumulate
+        (
+            Diagnosis(hasSymptom(Symptoms.HIGH_BLOOD_PRESSURE) && new Date() < DateUtils.addMonths(new Date(date.getTime()), 6))
+            from $patientDiagnoses,
+            init (count = 0),
+            action (count =+ 1),
+            result (count)
+        )
+    then
+            modify($diagnosis) { addDisease($disease) }
+    end
+
+
+rule "Diabetes"
+    agenda-group "DISEASE-DIAGNOSTIC"
+    lock-on-active
+    when
+        $diagnosis: Diagnosis($symptoms: symptoms, !hasDiseaseFromGroup(DiseaseGroup.SECOND))
+        $disease: Disease(name == Diseases.DIABETES)
+        $salience: Number(intValue >= 4) from accumulate
+        (
+            Symptom(name == Symptoms.OFTEN_URINATION ||
+                    name == Symptoms.WEIGHT_LOSS ||
+                    name == Symptoms.TIREDNESS ||
+                    name == Symptoms.NAUSEA_AND_VOMITTING)
+            from $symptoms,
+            init (count = 0),
+            action (count += 1),
+            result (count)
+        )
+    then
+        modify($diagnosis) { addDisease($disease) }
+    end
+
+
+// THIRD GROUP ---------------------------------------------------------------------------------------------------------
+
+rule "Chronic kidney disease"
+    agenda-group "DISEASE-DIAGNOSTIC"
+    lock-on-active
+    when
+        $diagnosis: Diagnosis($patient: patient, $symptoms: symptoms, !hasDiseaseFromGroup(DiseaseGroup.THIRD))
+        $disease: Disease(name == Diseases.CHRONIC_KINDEY_DISEASE)
+        $patientDiagnoses : Diagnosis(patient.getId() == $patient.getId())
+
+        $generic: Number(intValue >= 2) from accumulate
+        (
+            Symptom(name == Symptoms.TIREDNESS ||
+                    name == Symptoms.NOCTURIA ||
+                    name == Symptoms.LEGS_AND_JOINTS_SWELLING ||
+                    name == Symptoms.CHOKING ||
+                    name == Symptoms.CHEST_PAIN)
+            from $symptoms,
+            init (count = 0),
+            action (count += 1),
+            result (count)
+        )
+
+        $specific: Number(intValue >= 1) from accumulate
+        (
+            Diagnosis(patient == $patient &&
+                      (hasDisease(Diseases.HYPERTENSION) && new Date() < DateUtils.addMonths(new Date(date.getTime()), 6)) ||
+                      hasDisease(Diseases.DIABETES))
+            from $patientDiagnoses,
+            init (count = 0),
+            action (count += 1),
+            reverse (count -= 1),
+            result (count)
+        )
+
+    then
+        modify($diagnosis) { addDisease($disease) }
+    end
+
+
+rule "Acute kidney injury"
+    agenda-group "DISEASE-DIAGNOSTIC"
+    lock-on-active
+    when
+        $diagnosis: Diagnosis($patient: patient, $symptoms: symptoms, !hasDiseaseFromGroup(DiseaseGroup.THIRD))
+        $disease: Disease(name == Diseases.ACUTE_KINDEY_INJURY)
+        $patientDiagnoses : Diagnosis(patient.getId() == $patient.getId())
+
+        $generic: Number(intValue >= 2) from accumulate
+        (
+            Symptom(name == Symptoms.TIREDNESS ||
+                    name == Symptoms.CHOKING ||
+                    name == Symptoms.LEGS_AND_JOINTS_SWELLING ||
+                    name == Symptoms.DIARRHEA ||
+                    name == Symptoms.CHEST_PAIN)
+            from $symptoms,
+            init (count = 0),
+            action (count += 1),
+            result (count)
+        )
+        $specific: Number(intValue >= 1) from accumulate
+        (
+            Diagnosis(patient.getId() == $patient.getId() &&
+                      ( hasSymptom(Symptoms.SURGRERY_RECOVERY) ||
+                        (hasSymptom(Symptoms.BODY_TEMPERATURE) && new Date() < DateUtils.addDays(new Date(date.getTime()), 14)) ||
+                        (hasPrescribedMedicationType(MedicationType.ANTIBIOTIC) && new Date() < DateUtils.addDays(new Date(date.getTime()), 21))))
+            from $patientDiagnoses,
+            init (count = 0),
+            action (count += 1),
+            result (count)
+
+        )
+    then
+        modify($diagnosis) { addDisease($disease) }
+    end
+

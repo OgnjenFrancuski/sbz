@@ -1,0 +1,72 @@
+<table class="table table-hover table-sm table-striped">
+
+  <thead>
+  <tr>
+    <th scope="col">Name</th>
+    <th scope="col">Group</th>
+    <th scope="col">Symptoms</th>
+    <th *ngIf="showUpdate || showDelete || showAdd || showRemove" scope="col">Actions</th>
+  </tr>
+  </thead>
+
+  <tbody>
+  <tr *ngFor="let d of data">
+
+    <td>{{d.name}}</td>
+    <td>{{d.group}}</td>
+
+    <td>
+      <div class="btn-group btn-group-sm">
+        <button type="button" class="btn btn-outline-info btn-sm" (click)="openGenericSymptomsModal(genericTemplate, d)">Generic</button>
+        <button type="button" class="btn btn-outline-info btn-sm" (click)="openSpecificSymptomsModal(specificTemplate, d)">Specific</button>
+      </div>
+    </td>
+
+    <td>
+      <div class="btn-group btn-group-sm">
+        <button *ngIf="showAdd" type="button" class="btn btn-success" (click)="addClickedEvent(d)">Add</button>
+        <button *ngIf="showRemove" type="button" class="btn btn-danger" (click)="removeClickedEvent(d)">Remove</button>
+        <button *ngIf="showUpdate" type="button" class="btn btn-warning" (click)="updateClickedEvent(d)">Update</button>
+        <button *ngIf="showDelete" type="button" class="btn btn-danger" (click)="deleteClickedEvent(d.id)">Delete</button>
+      </div>
+
+    </td>
+
+  </tr>
+
+  </tbody>
+</table>
+
+
+<ng-template #specificTemplate>
+
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">{{'Specific symptoms for: ' + selected.name}}</h4>
+    <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+
+  <div class="modal-body">
+    <app-symptom-table [data]="selected.specificSymptoms" [show-update]="false" [show-delete]="false"></app-symptom-table>
+  </div>
+
+</ng-template>
+
+
+<ng-template #genericTemplate>
+
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">{{'Generic symptoms for: ' + selected.name}}</h4>
+    <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+
+  <div class="modal-body">
+    <app-symptom-table [data]="selected.genericSymptoms" [show-update]="false" [show-delete]="false"></app-symptom-table>
+  </div>
+
+</ng-template>
