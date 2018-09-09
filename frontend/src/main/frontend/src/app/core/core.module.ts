@@ -32,7 +32,7 @@ import {DiagnosisService} from './services/http/diagnosis.service';
     DiseaseService,
     IngredientService,
     DiagnosisService,
-    KieService
+    KieService,
   ]
 })
 export class CoreModule {

@@ -12,20 +12,21 @@ import {DiagnosisPageComponent} from './components/pages/diagnosis-page/diagnosi
 import {DiagnosesPageComponent} from './components/pages/diagnoses-page/diagnoses-page.component';
 import {DiagnosisDetailsPageComponent} from './components/pages/diagnosis-details-page/diagnosis-details-page.component';
 import {ReportPageComponent} from './components/pages/report-page/report-page.component';
+import {AuthGuard} from './core/guards/auth.guard';
 
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
-  { path: 'patients', component: PatientsPageComponent },
-  { path: 'physicians', component: PhysiciansPageComponent },
-  { path: 'medications', component: MedicationsPageComponent },
-  { path: 'ingredients', component: IngredientsPageComponent },
-  { path: 'diseases', component: DiseasesPageComponent },
-  { path: 'symptoms', component: SymptomsPageComponent },
-  { path: 'diagnosis', component: DiagnosisPageComponent },
-  { path: 'diagnoses', component: DiagnosesPageComponent },
-  { path: 'diagnoses/:id', component: DiagnosisDetailsPageComponent },
+  { path: 'patients', component: PatientsPageComponent, canActivate: [AuthGuard] },
+  { path: 'physicians', component: PhysiciansPageComponent, canActivate: [AuthGuard] },
+  { path: 'medications', component: MedicationsPageComponent,canActivate: [AuthGuard] },
+  { path: 'ingredients', component: IngredientsPageComponent,canActivate: [AuthGuard] },
+  { path: 'diseases', component: DiseasesPageComponent,canActivate: [AuthGuard] },
+  { path: 'symptoms', component: SymptomsPageComponent, canActivate: [AuthGuard] },
+  { path: 'diagnosis', component: DiagnosisPageComponent, canActivate: [AuthGuard] },
+  { path: 'diagnoses', component: DiagnosesPageComponent, canActivate: [AuthGuard] },
+  { path: 'diagnoses/:id', component: DiagnosisDetailsPageComponent, canActivate: [AuthGuard] },
   { path: 'report', component: ReportPageComponent },
   { path: '**', redirectTo: 'home' }
 ];

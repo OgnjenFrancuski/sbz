@@ -29,6 +29,8 @@ export class AuthorityService
 
   getCurrentUserAuthorities(): string[]
   {
+    if (localStorage.getItem('currentUserAuthorities') == null)
+      return [];
     return localStorage.getItem('currentUserAuthorities').split(';');
   }
 

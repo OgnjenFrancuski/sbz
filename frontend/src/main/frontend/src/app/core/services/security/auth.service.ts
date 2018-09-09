@@ -41,13 +41,21 @@ export class AuthService {
 
   logout(): Observable<boolean>
   {
-    console.log("LOGOUT");
     return this.http.get(`${this.urlBase}/logout`)
       .map(() =>
       {
-        console.log("INNER");
         this.authorityService.removeCurrentUser();
         return true;
+      }).catch(this.handleErrors);
+  }
+
+
+  isAuthenticated(): Observable<boolean>
+  {
+    return this.http.get(`${this.urlBase}/is-authenticated`)
+      .map((res: any) =>
+      {
+        return res['authenticated'];
       }).catch(this.handleErrors);
   }
 

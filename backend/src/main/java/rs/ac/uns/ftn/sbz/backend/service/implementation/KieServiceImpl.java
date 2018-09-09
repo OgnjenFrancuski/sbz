@@ -5,10 +5,7 @@ import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.sbz.backend.model.*;
-import rs.ac.uns.ftn.sbz.backend.model.util.DiagnosisList;
-import rs.ac.uns.ftn.sbz.backend.model.util.DiseaseMap;
-import rs.ac.uns.ftn.sbz.backend.model.util.MedicationList;
-import rs.ac.uns.ftn.sbz.backend.model.util.PatientList;
+import rs.ac.uns.ftn.sbz.backend.model.util.*;
 import rs.ac.uns.ftn.sbz.backend.service.*;
 
 import java.sql.Date;
@@ -129,15 +126,16 @@ public class KieServiceImpl implements KieService
     @Override
     public List<Patient> possibleChronicDiseasePatients(KieSession kieSession)
     {
-        this.patientService.getAll().forEach(kieSession::insert);
 
         PatientList pl = new PatientList();
         DiagnosisList dl = new DiagnosisList();
+
+        this.patientService.getAll().forEach(kieSession::insert);
         this.diagnosisService.getAll().forEach(dl::add);
 
         kieSession.insert(pl);
         kieSession.insert(dl);
-
+        kieSession.insert(new Report(ReportType.CHRONIC));
         kieSession.getAgenda().getAgendaGroup("CHRONIC").setFocus();
         kieSession.fireAllRules();
 
@@ -149,13 +147,14 @@ public class KieServiceImpl implements KieService
     public List<Patient> possibleAddictPatients(KieSession kieSession)
     {
         PatientList pl = new PatientList();
-        this.patientService.getAll().forEach(kieSession::insert);
-
         DiagnosisList dl = new DiagnosisList();
+
+        this.patientService.getAll().forEach(kieSession::insert);
         this.diagnosisService.getAll().forEach(dl::add);
 
         kieSession.insert(pl);
         kieSession.insert(dl);
+        kieSession.insert(new Report(ReportType.ADDICTS));
 
         kieSession.getAgenda().getAgendaGroup("ADDICTS").setFocus();
         kieSession.fireAllRules();
@@ -167,16 +166,18 @@ public class KieServiceImpl implements KieService
     @Override
     public List<Patient> weakImmuneSystemPatients(KieSession kieSession)
     {
-        PatientList pl = new PatientList();
-        this.patientService.getAll().forEach(kieSession::insert);
 
         DiagnosisList dl = new DiagnosisList();
+        PatientList pl = new PatientList();
+
         this.diagnosisService.getAll().forEach(dl::add);
+        this.patientService.getAll().forEach(kieSession::insert);
 
         kieSession.insert(pl);
         kieSession.insert(dl);
+        kieSession.insert(new Report(ReportType.WEAK_IMMUNE_SYSTEM));
 
-        kieSession.getAgenda().getAgendaGroup("WEAK IMMUNE SYSTEM").setFocus();
+        kieSession.getAgenda().getAgendaGroup("WEAK_IMMUNE_SYSTEM").setFocus();
         kieSession.fireAllRules();
 
         return pl.getPatients();

@@ -9,7 +9,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.uns.ftn.sbz.backend.model.User;
 import rs.ac.uns.ftn.sbz.backend.service.UserService;
+import rs.ac.uns.ftn.sbz.backend.web.dto.AuthenticatedDto;
 import rs.ac.uns.ftn.sbz.backend.web.dto.LoggedInUserDto;
 import rs.ac.uns.ftn.sbz.backend.web.dto.LoginDto;
 
@@ -48,6 +50,18 @@ public class UserController
         KieSession kieSession = this.kieContainer.newKieSession(this.ruleSessionName);
         httpSession.setAttribute("kieSession", kieSession);
         return new ResponseEntity<>(new LoggedInUserDto(loginDTO.getUsername(), authorities), HttpStatus.OK);
+    }
+
+
+    @RequestMapping(
+            value = "/is-authenticated",
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity isAuthenticated()
+    {
+        boolean ret = this.userService.currentUser() != null;
+        return new ResponseEntity<>(new AuthenticatedDto(ret), HttpStatus.OK);
     }
 
 

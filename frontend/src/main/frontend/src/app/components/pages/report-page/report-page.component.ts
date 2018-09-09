@@ -14,6 +14,7 @@ import {IngredientSharedService} from '../../../core/services/shared/ingredient.
 export class ReportPageComponent implements OnInit {
 
   data: Patient[];
+  what: string;
 
   constructor(private service: KieService) { }
 
@@ -26,7 +27,9 @@ export class ReportPageComponent implements OnInit {
       .subscribe((res: Patient[]) =>
       {
         this.data = res;
+        this.what = "patients with possible chronic diseases";
       })
+
   }
 
   getAddicted()
@@ -35,6 +38,7 @@ export class ReportPageComponent implements OnInit {
       .subscribe((res: Patient[]) =>
       {
         this.data = res;
+        this.what = "patients who are possible addicts";
       })
   }
 
@@ -43,6 +47,7 @@ export class ReportPageComponent implements OnInit {
     this.service.getWeak()
       .subscribe((res: Patient[]) =>
       {
+        this.what = "patients with weak immune system";
         this.data = res;
       })
   }

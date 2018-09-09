@@ -1,4 +1,4 @@
-package rules
+package report
 
 import rs.ac.uns.ftn.sbz.backend.model.Diagnosis;
 import rs.ac.uns.ftn.sbz.backend.model.Disease;
@@ -8,6 +8,8 @@ import rs.ac.uns.ftn.sbz.backend.model.codebook.Diseases;
 import rs.ac.uns.ftn.sbz.backend.model.util.PatientList;
 import rs.ac.uns.ftn.sbz.backend.model.util.DiagnosisList;
 import rs.ac.uns.ftn.sbz.backend.model.util.StringIntegerMap;
+import rs.ac.uns.ftn.sbz.backend.model.util.Report;
+import rs.ac.uns.ftn.sbz.backend.model.util.ReportType;
 import rs.ac.uns.ftn.sbz.backend.service.DiseaseService;
 import rs.ac.uns.ftn.sbz.backend.service.MedicationService;
 import org.apache.commons.lang3.time.DateUtils;
@@ -29,11 +31,21 @@ rule "Chronic disease patients"
         $patient: Patient()
         $diagnosisList: DiagnosisList()
         $chronical: PatientList()
+        $report: Report(reportType == ReportType.CHRONIC)
+
+        $diagnosesInLastTwoYears: List(size > 0) from accumulate
+        (
+            $d: Diagnosis($patient.id == patient.id, new Date() < DateUtils.addYears(new Date(date.getTime()), 2))
+            from $diagnosisList.getDiagnosisList(),
+            init(List<Diagnosis> l = new ArrayList();),
+            action(l.add($d);),
+            result(l)
+        )
 
         $map : StringIntegerMap(size > 0) from accumulate
         (
-            Diagnosis($patient.id == patient.id, $diseases: diseases, new Date() < DateUtils.addYears(new Date(date.getTime()), 2))
-            from $diagnosisList.getDiagnosisList(),
+            Diagnosis($diseases: diseases)
+            from $diagnosesInLastTwoYears,
             init(StringIntegerMap sim = new StringIntegerMap()),
             action
             (
@@ -77,8 +89,9 @@ rule "Possible medication addicts"
         $patient: Patient()
         $diagnosisList: DiagnosisList()
         $addicts: PatientList()
+        $report: Report(reportType == ReportType.ADDICTS)
 
-        $diagnosesInLastSixMonths: List() from accumulate
+        $diagnosesInLastSixMonths: List(size > 0) from accumulate
         (
             $d: Diagnosis($patient.id == patient.id, new Date() < DateUtils.addMonths(new Date(date.getTime()), 6))
             from $diagnosisList.getDiagnosisList(),
@@ -89,7 +102,7 @@ rule "Possible medication addicts"
 
         $analgesics : Number(intValue >= 6) from accumulate
         (
-            Diagnosis(hasPrescribedMedicationType(MedicationType.ANALGESIC))
+            Diagnosis(hasPrescribedMedicationType(MedicationType.ANALGESIC) == true)
             from $diagnosesInLastSixMonths,
             init(int count = 1;),
             action(count += 1;),
@@ -110,62 +123,62 @@ rule "Possible medication addicts"
     end
 
 
-//rule "Weak immune system patients"
-//    agenda-group "WEAK IMMUNE SYSTEM"
-//    no-loop
-//    when
-//        $patient: Patient()
-//        $diagnosisList: DiagnosisList()
-//        $weak: PatientList()
-//
-//        $relevantDiagnoses: List() from accumulate
-//        (
-//            $d: Diagnosis
-//            (
-//                hasPrescribedMedicationType(MedicationType.ANTIBIOTIC) &&
-//                !hasPrescribedMedicationType(MedicationType.ANALGESIC) &&
-//                !hasPrescribedMedicationType(MedicationType.OTHER),
-//                new Date() < DateUtils.addMonths(new Date(date.getTime()), 12)
-//            )
-//            from $diagnosisList.getDiagnosisList(),
-//            init(List<Diagnosis> l = new ArrayList();),
-//            action(l.add($d);),
-//            reverse(l.remove($d);),
-//            result(l)
-//        )
-//
-//        $relevantDiseases: List() from accumulate
-//        (
-//            $d: Diagnosis()
-//            from $relevantDiagnoses,
-//            init(List<Disease> l = new ArrayList();),
-//            action(l.addAll($d.getDiseases());),
-//            result(l)
-//        )
-//
-//        $map : StringIntegerMap(size > 1) from accumulate
-//        (
-//            $d: Disease()
-//            from $relevantDiseases,
-//            init(StringIntegerMap sim = new StringIntegerMap()),
-//            action(sim.incCount($d.getName());),
-//            result(sim)
-//        )
-//
-//        $n: Number(intValue > 0) from accumulate
-//        (
-//            $sim: StringIntegerMap()
-//            from $map,
-//            init(int count = 0;),
-//            action
-//            (
-//                if ($sim.keySet().size() >= 2 && $sim.valueSetSum() >= 10)
-//                    count = 1;
-//            ),
-//            reverse(count = 0),
-//            result(count;)
-//        )
-//    then
-//        System.out.println("D");
-//        modify($weak){add($patient)}
-//    end
+rule "Weak immune system patients"
+    agenda-group "WEAK_IMMUNE_SYSTEM"
+    no-loop
+    when
+        $patient: Patient()
+        $diagnosisList: DiagnosisList()
+        $weak: PatientList()
+        $report: Report(reportType == ReportType.WEAK_IMMUNE_SYSTEM)
+
+        $relevantDiagnoses: List(size > 0) from accumulate
+        (
+            $d: Diagnosis($patient.id == patient.id,
+                          new Date() < DateUtils.addMonths(new Date(date.getTime()), 12),
+                          hasPrescribedMedicationType(MedicationType.ANTIBIOTIC) == true,
+                          hasPrescribedMedicationType(MedicationType.ANALGESIC) == false,
+                          hasPrescribedMedicationType(MedicationType.OTHER) == false)
+            from $diagnosisList.getDiagnosisList(),
+            init(List<Diagnosis> l = new ArrayList();),
+            action(l.add($d);),
+            reverse(l.remove($d);),
+            result(l)
+        )
+
+        $relevantDiseases: List(size > 0) from accumulate
+        (
+            $d: Diagnosis()
+            from $relevantDiagnoses,
+            init(List<Disease> l = new ArrayList();),
+            action(l.addAll($d.getDiseases());),
+            result(l)
+        )
+
+        $map : StringIntegerMap(size >= 2) from accumulate
+        (
+            $d: Disease()
+            from $relevantDiseases,
+            init(StringIntegerMap sim = new StringIntegerMap()),
+            action(sim.incCount($d.getName());),
+            result(sim)
+        )
+
+        Number(intValue > 0) from accumulate
+        (
+            $sim: StringIntegerMap()
+            from $map,
+            init(int count = 0;),
+            action
+            (
+                if ($sim.keySet().size() >= 2 && $sim.valueSetSum() >= 10)
+                    count = 1;
+            ),
+            reverse(count = 0),
+            result(count;)
+        )
+    then
+        System.out.println("Patient: " + $patient.getFirstName() + " " + $patient.getLastName());
+        System.out.println($map.getMap().toString());
+        modify($weak){add($patient)}
+    end

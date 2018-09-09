@@ -23,7 +23,7 @@ rule "Flu"
    agenda-group "DISEASE-DIAGNOSTIC"
    lock-on-active
    when
-       $diagnosis: Diagnosis($symptoms: symptoms, !hasDiseaseFromGroup(DiseaseGroup.FIRST))
+       $diagnosis: Diagnosis($symptoms: symptoms, hasDiseaseFromGroup(DiseaseGroup.FIRST) == false)
        $disease: Disease(name == Diseases.FLU)
        $counter: SymptomCounter(found >= 4) from accumulate
        (
@@ -55,7 +55,7 @@ rule "Fever"
     agenda-group "DISEASE-DIAGNOSTIC"
     lock-on-active
     when
-       $diagnosis: Diagnosis($bodyTemperature: bodyTemperature, $symptoms: symptoms, !hasDiseaseFromGroup(DiseaseGroup.FIRST))
+       $diagnosis: Diagnosis($bodyTemperature: bodyTemperature, $symptoms: symptoms, hasDiseaseFromGroup(DiseaseGroup.FIRST) == false)
        $disease: Disease(name == Diseases.FEVER)
        $counter: SymptomCounter(found >= 4) from accumulate
        (
@@ -88,7 +88,7 @@ rule "Tonsil inflammation"
     agenda-group "DISEASE-DIAGNOSTIC"
     lock-on-active
     when
-        $diagnosis: Diagnosis($symptoms: symptoms, $bodyTemperature: bodyTemperature, !hasDiseaseFromGroup(DiseaseGroup.FIRST))
+        $diagnosis: Diagnosis($symptoms: symptoms, $bodyTemperature: bodyTemperature, hasDiseaseFromGroup(DiseaseGroup.FIRST) == false)
         $disease: Disease(name == Diseases.TONSIL_INFLAMMATION)
         $counter: SymptomCounter(found >= 4) from accumulate
         (
@@ -123,12 +123,13 @@ rule "Sinus infection"
     agenda-group "DISEASES GROUP I"
     lock-on-active
     when
-        $diagnosis: Diagnosis($symptoms: symptoms, !hasDiseaseFromGroup(DiseaseGroup.FIRST))
+        $diagnosis: Diagnosis($symptoms: symptoms, hasDiseaseFromGroup(DiseaseGroup.FIRST) == false)
         $disease: Disease(name == Diseases.SINUS_INFECTION)
         Patient($patientDiagnoses: diagnoses)
         $specific: Number(intValue >= 0) from accumulate
         (
-            Diagnosis((hasDisease(Diseases.FLU) || hasDisease(Diseases.FEVER)) && new Date() < DateUtils.addDays(new Date(date.getTime()), 60))
+            Diagnosis((hasDisease(Diseases.FLU) == true || hasDisease(Diseases.FEVER) == true) &&
+                                  new Date() < DateUtils.addDays(new Date(date.getTime()), 60))
             from $patientDiagnoses,
                     init(int count = 0;),
                     action(count = 1;),
@@ -169,12 +170,13 @@ rule "Hypertension"
     agenda-group "DISEASE-DIAGNOSTIC"
     lock-on-active
     when
-        $diagnosis: Diagnosis(!hasDiseaseFromGroup(DiseaseGroup.SECOND))
+        $diagnosis: Diagnosis(hasDiseaseFromGroup(DiseaseGroup.SECOND) == false)
         $disease: Disease(name == Diseases.HYPERTENSION)
         Patient($patientDiagnoses: diagnoses)
         $salience: Number(intValue >= 10) from accumulate
         (
-            Diagnosis(hasSymptom(Symptoms.HIGH_BLOOD_PRESSURE) && new Date() < DateUtils.addMonths(new Date(date.getTime()), 6))
+            Diagnosis(hasSymptom(Symptoms.HIGH_BLOOD_PRESSURE) == true &&
+                      new Date() < DateUtils.addMonths(new Date(date.getTime()), 6))
             from $patientDiagnoses,
             init (count = 0),
             action (count =+ 1),
@@ -189,7 +191,7 @@ rule "Diabetes"
     agenda-group "DISEASE-DIAGNOSTIC"
     lock-on-active
     when
-        $diagnosis: Diagnosis($symptoms: symptoms, !hasDiseaseFromGroup(DiseaseGroup.SECOND))
+        $diagnosis: Diagnosis($symptoms: symptoms, hasDiseaseFromGroup(DiseaseGroup.SECOND) == false)
         $disease: Disease(name == Diseases.DIABETES)
         $salience: Number(intValue >= 4) from accumulate
         (
@@ -213,7 +215,7 @@ rule "Chronic kidney disease"
     agenda-group "DISEASE-DIAGNOSTIC"
     lock-on-active
     when
-        $diagnosis: Diagnosis($patient: patient, $symptoms: symptoms, !hasDiseaseFromGroup(DiseaseGroup.THIRD))
+        $diagnosis: Diagnosis($patient: patient, $symptoms: symptoms, hasDiseaseFromGroup(DiseaseGroup.THIRD) == false)
         $disease: Disease(name == Diseases.CHRONIC_KINDEY_DISEASE)
         $patientDiagnoses : Diagnosis(patient.getId() == $patient.getId())
 
@@ -233,8 +235,8 @@ rule "Chronic kidney disease"
         $specific: Number(intValue >= 1) from accumulate
         (
             Diagnosis(patient == $patient &&
-                      (hasDisease(Diseases.HYPERTENSION) && new Date() < DateUtils.addMonths(new Date(date.getTime()), 6)) ||
-                      hasDisease(Diseases.DIABETES))
+                      (hasDisease(Diseases.HYPERTENSION) == true && new Date() < DateUtils.addMonths(new Date(date.getTime()), 6)) ||
+                      hasDisease(Diseases.DIABETES) == true)
             from $patientDiagnoses,
             init (count = 0),
             action (count += 1),
@@ -251,7 +253,7 @@ rule "Acute kidney injury"
     agenda-group "DISEASE-DIAGNOSTIC"
     lock-on-active
     when
-        $diagnosis: Diagnosis($patient: patient, $symptoms: symptoms, !hasDiseaseFromGroup(DiseaseGroup.THIRD))
+        $diagnosis: Diagnosis($patient: patient, $symptoms: symptoms, hasDiseaseFromGroup(DiseaseGroup.THIRD) == false)
         $disease: Disease(name == Diseases.ACUTE_KINDEY_INJURY)
         $patientDiagnoses : Diagnosis(patient.getId() == $patient.getId())
 
@@ -270,9 +272,9 @@ rule "Acute kidney injury"
         $specific: Number(intValue >= 1) from accumulate
         (
             Diagnosis(patient.getId() == $patient.getId() &&
-                      ( hasSymptom(Symptoms.SURGRERY_RECOVERY) ||
-                        (hasSymptom(Symptoms.BODY_TEMPERATURE) && new Date() < DateUtils.addDays(new Date(date.getTime()), 14)) ||
-                        (hasPrescribedMedicationType(MedicationType.ANTIBIOTIC) && new Date() < DateUtils.addDays(new Date(date.getTime()), 21))))
+                      ( hasSymptom(Symptoms.SURGRERY_RECOVERY) == true ||
+                        (hasSymptom(Symptoms.BODY_TEMPERATURE) == true && new Date() < DateUtils.addDays(new Date(date.getTime()), 14)) ||
+                        (hasPrescribedMedicationType(MedicationType.ANTIBIOTIC) == true && new Date() < DateUtils.addDays(new Date(date.getTime()), 21))))
             from $patientDiagnoses,
             init (count = 0),
             action (count += 1),

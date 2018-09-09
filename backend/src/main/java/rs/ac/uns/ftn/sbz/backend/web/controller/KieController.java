@@ -127,11 +127,11 @@ public class KieController
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity possibleChronicDiseasePatients(HttpSession httpSession)
+    public ResponseEntity possibleChronicDiseasePatients()
     {
-        KieSession kieSession = this.kieContainer.newKieSession(this.ruleSessionName);
+        KieSession kieSession = this.kieContainer.newKieSession(this.reportSessionName);
         List<Patient> ret = this.kieService.possibleChronicDiseasePatients(kieSession);
-        this.resetKieSession(httpSession);
+        kieSession.destroy();
         List<PatientDto> dto = ret.stream().map((p) -> new PatientDto(p, false)).collect(Collectors.toList());
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
@@ -142,11 +142,11 @@ public class KieController
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity possibleAddictedPatients(HttpSession httpSession)
+    public ResponseEntity possibleAddictedPatients()
     {
-        KieSession kieSession = this.kieContainer.newKieSession(this.ruleSessionName);
+        KieSession kieSession = this.kieContainer.newKieSession(this.reportSessionName);
         List<Patient> ret = this.kieService.possibleAddictPatients(kieSession);
-        this.resetKieSession(httpSession);
+        kieSession.destroy();
         List<PatientDto> dto = ret.stream().map((p) -> new PatientDto(p, false)).collect(Collectors.toList());
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
@@ -157,11 +157,11 @@ public class KieController
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity weakImmuneSystemPatients(HttpSession httpSession)
+    public ResponseEntity weakImmuneSystemPatients()
     {
-        KieSession kieSession = this.kieContainer.newKieSession(this.ruleSessionName);
+        KieSession kieSession = this.kieContainer.newKieSession(this.reportSessionName);
         List<Patient> ret = this.kieService.weakImmuneSystemPatients(kieSession);
-        this.resetKieSession(httpSession);
+        kieSession.destroy();
         List<PatientDto> dto = ret.stream().map((p) -> new PatientDto(p, false)).collect(Collectors.toList());
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
